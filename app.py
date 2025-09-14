@@ -18,9 +18,9 @@ bot = telebot.TeleBot(TOKEN)
 DATABASE_URL = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
 print(DATABASE_URL)  # должно показать всю строку
 
-conn = psycopg2.connect(DATABASE_URL)
+connection = psycopg2.connect(DATABASE_URL)
 print("✅ Подключение успешно")
-conn.close()
+connection.close()
 
 WEBHOOK_PATH = f"/{TOKEN}"
 WEBHOOK_URL = f"https://familybudgetbot-production.up.railway.app{WEBHOOK_PATH}"
@@ -107,86 +107,87 @@ def days_declension(n: int) -> str:
 
 
 def get_single_users():
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute('SELECT single_users.name FROM single_users')
     users = cursor.fetchall()
-    conn.close()
+    connection.close()
     single_users = [user[0] for user in users]
     return single_users
 
 
 def get_family_users():
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute('SELECT family_users.name FROM family_users')
     users = cursor.fetchall()
-    conn.close()
+    connection.close()
     family_users = [user[0] for user in users]
     return family_users
 
 
 def get_code_words():
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute('SELECT log_in_to_family.code_word FROM log_in_to_family')
     code_words = cursor.fetchall()
-    conn.close()
+    connection.close()
     code_words = [code_word[0] for code_word in code_words]
     return code_words
 
 
 def get_passwords(code_word):
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute('SELECT log_in_to_family.password FROM log_in_to_family WHERE code_word=%s',
                    (code_word, ))
     passwords = cursor.fetchall()
-    conn.close()
+    connection.close()
     password = [password[0] for password in passwords]
     return password
 
 
 def add_single_users_in_database(name):
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute(
         f'INSERT INTO single_users (name) VALUES (%s)', (name, ))
-    conn.commit()
-    conn.close()
+    connection.commit()
+    connection.close()
 
 
 def add_expenses_to_database(amount, table_name, user):
     today = datetime.now().date().isoformat()  # '2025-08-27'
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute(f'INSERT INTO {table_name} (name, cost, date) VALUES (%s, %s, %s)',
                    (user, amount, today))
-    conn.commit()
-    conn.close()
+    connection.commit()
+    connection.close()
 
 
 def get_expenses_in_one_category(category, category_text, username):
     single_users = get_single_users()
 
     if username in single_users:
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         
         cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=%s', (username,))
         count_of_days = cursor.fetchall()[0][0]
+        connection.close()
 
         if count_of_days == 0:
             return 'Вы ещё не заполняли эту статью расходов :)'
 
         elif 0 < count_of_days < 60:
             day = days_declension(count_of_days)
-            conn = psycopg2.connect(DATABASE_URL)
-            cursor = conn.cursor()
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
             cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date >= DATE("now", "-59 day") AND name=%s',
                            (username,))
             result = cursor.fetchall()[0][0]
-            conn.close()
+            connection.close()
             average_amount = int(result) / int(count_of_days)
             return (f'Вы ведёте бюджет *в категории "{category_text}" {count_of_days} {day}*.\n\nБот пока не может '
                     f'показать вам статистику по месяцам: для этого нужно вести бюджет хотя бы 60 дней :)\n\nПокажу '
@@ -235,49 +236,49 @@ def get_expenses_in_one_category(category, category_text, username):
             pass
 
     else:
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=%s', (username,))
         family_number = cursor.fetchall()[0][0]
-        conn.close()
+        connection.close()
 
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute('SELECT family_users.name FROM family_users WHERE family_number=%s',
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
-        conn.close()
+        connection.close()
 
         all_days = []
         total_amount = 0
         for name in family:
-            conn = psycopg2.connect(DATABASE_URL)
-            cursor = conn.cursor()
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
             cursor.execute(f'SELECT date FROM {category} WHERE name=%s', (name,))
             all_days_one_name = cursor.fetchall()
-            conn.close()
+            connection.close()
 
             all_days_one_name = [date[0] for date in all_days_one_name]
 
             for day in all_days_one_name:
                 all_days.append(day)
 
-            conn = psycopg2.connect(DATABASE_URL)
-            cursor = conn.cursor()
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
             cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=%s', (name,))
             count_of_days_one_name = cursor.fetchall()[0][0]
-            conn.close()
+            connection.close()
             if count_of_days_one_name != 0:
 
                 if count_of_days_one_name < 60:
-                    conn = psycopg2.connect(DATABASE_URL)
-                    cursor = conn.cursor()
+                    connection = psycopg2.connect(DATABASE_URL)
+                    cursor = connection.cursor()
                     cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date >= DATE("now", "-59 day") '
                                    f'AND name=%s', (name,))
                     result = cursor.fetchall()[0][0]
                     total_amount += result
-                    conn.close()
+                    connection.close()
 
                 elif count_of_days_one_name == 60:
                     pass
@@ -313,27 +314,27 @@ def get_expenses_in_one_month(username):
         for category in categories:
             table = categories.get(category)[0]
             word = categories.get(category)[2]
-            conn = psycopg2.connect(DATABASE_URL)
-            cursor = conn.cursor()
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
             cursor.execute(f'SELECT name FROM {table}')
             names = cursor.fetchall()
-            conn.close()
+            connection.close()
             names = [name[0] for name in names]
             if username in names:
-                conn = psycopg2.connect(DATABASE_URL)
-                cursor = conn.cursor()
+                connection = psycopg2.connect(DATABASE_URL)
+                cursor = connection.cursor()
                 cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE date >= DATE("now", "-30 day") AND name=%s',
                                (username,))
                 amount = cursor.fetchall()[0][0]
-                conn.close()
+                connection.close()
 
                 all_amount += int(amount)
-                conn = psycopg2.connect(DATABASE_URL)
-                cursor = conn.cursor()
+                connection = psycopg2.connect(DATABASE_URL)
+                cursor = connection.cursor()
                 cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {table} WHERE date >= DATE("now", "-30 day") '
                                f'AND name=%s', (username, ))
                 count_of_days = cursor.fetchall()[0][0]
-                conn.close()
+                connection.close()
                 average_amount = int(amount) / int(count_of_days)
                 text = (f'*{word.upper()}:*\nза последний месяц потрачено - *{amount}* 💸\n'
                         f'средние расходы в день - *{average_amount}* 💸\n\n')
@@ -346,19 +347,19 @@ def get_expenses_in_one_month(username):
         return all_data
 
     else:
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=%s', (username,))
         family_number = cursor.fetchall()[0][0]
-        conn.close()
+        connection.close()
 
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute('SELECT family_users.name FROM family_users WHERE family_number=%s',
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
-        conn.close()
+        connection.close()
 
         all_data = ''
         all_amount = 0
@@ -366,11 +367,11 @@ def get_expenses_in_one_month(username):
         for category in categories:
             table = categories.get(category)[0]
             word = categories.get(category)[2]
-            conn = psycopg2.connect(DATABASE_URL)
-            cursor = conn.cursor()
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
             cursor.execute(f'SELECT name FROM {table}')
             names = cursor.fetchall()
-            conn.close()
+            connection.close()
             names = list(set([name[0] for name in names]))
 
             amount_category = 0
@@ -378,22 +379,22 @@ def get_expenses_in_one_month(username):
 
             for name in family:
                 if name in names:
-                    conn = psycopg2.connect(DATABASE_URL)
-                    cursor = conn.cursor()
+                    connection = psycopg2.connect(DATABASE_URL)
+                    cursor = connection.cursor()
                     cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE date >= DATE("now", "-30 day") '
                                    f'AND name=%s', (name,))
                     amount = cursor.fetchall()[0][0]
-                    conn.close()
+                    connection.close()
 
                     amount_category += int(amount)
 
-                    conn = psycopg2.connect(DATABASE_URL)
-                    cursor = conn.cursor()
+                    connection = psycopg2.connect(DATABASE_URL)
+                    cursor = connection.cursor()
                     cursor.execute(
                         f'SELECT "date" FROM {table} WHERE "date" >= DATE("now", "-30 day") AND name=%s',
                         (name,))
                     all_days_one_name = cursor.fetchall()
-                    conn.close()
+                    connection.close()
                     all_days_one_name = [date[0] for date in all_days_one_name]
 
                     for day in all_days_one_name:
@@ -420,56 +421,56 @@ def start_family_in_database(text, column_name, name):
     # start_family_in_database(message.text, column_name, username)
     if column_name == 'code_word':
         print('пришли в if column_name == code_word')
-        conn = psycopg2.connect(DATABASE_URL)
+        connection = psycopg2.connect(DATABASE_URL)
         print('os.getenv("DATABASE_URL")')
         print(os.getenv("DATABASE_URL"))
-        cursor = conn.cursor()
+        cursor = connection.cursor()
         cursor.execute(f'INSERT INTO log_in_to_family (name, code_word, password, family_number) '
                        f'VALUES (%s, %s, %s, %s)', (name, text, '-', '-'))
-        conn.commit()
-        conn.close()
+        connection.commit()
+        connection.close()
 
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute('SELECT log_in_to_family.id FROM log_in_to_family')
         id_names = cursor.fetchall()
         id_names = [id_name[0] for id_name in id_names]
         id_names.sort()
         last_id = id_names[-1]
-        conn.close()
+        connection.close()
 
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (%s, %s)',
                        (name, last_id))
         cursor.execute(f'UPDATE log_in_to_family SET family_number=%s WHERE family_number=%s AND name=%s',
                        (last_id, '-', name))
-        conn.commit()
-        conn.close()
+        connection.commit()
+        connection.close()
 
     elif column_name == 'password':
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
         cursor.execute(f'UPDATE log_in_to_family SET password=%s WHERE password=%s AND name=%s',
                        (text, '-', name))
-        conn.commit()
-        conn.close()
+        connection.commit()
+        connection.close()
 
 
 def add_family_in_database(username, password):
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute(
         'SELECT log_in_to_family.family_number FROM log_in_to_family WHERE password=%s', (password, ))
     family_number = cursor.fetchall()[0][0]
-    conn.close()
+    connection.close()
 
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
+    connection = psycopg2.connect(DATABASE_URL)
+    cursor = connection.cursor()
     cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (%s, %s)',
                    (username, family_number))
-    conn.commit()
-    conn.close()
+    connection.commit()
+    connection.close()
 
 
 @bot.message_handler(commands=['start', ])
