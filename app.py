@@ -99,7 +99,7 @@ def days_declension(n: int) -> str:
 
 
 def get_single_users():
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute('SELECT single_users.name FROM single_users')
     users = cursor.fetchall()
@@ -109,7 +109,7 @@ def get_single_users():
 
 
 def get_family_users():
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute('SELECT family_users.name FROM family_users')
     users = cursor.fetchall()
@@ -119,7 +119,7 @@ def get_family_users():
 
 
 def get_code_words():
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute('SELECT log_in_to_family.code_word FROM log_in_to_family')
     code_words = cursor.fetchall()
@@ -129,9 +129,9 @@ def get_code_words():
 
 
 def get_passwords(code_word):
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute('SELECT log_in_to_family.password FROM log_in_to_family WHERE code_word=?',
+    cursor.execute('SELECT log_in_to_family.password FROM log_in_to_family WHERE code_word=%s',
                    (code_word, ))
     passwords = cursor.fetchall()
     conn.close()
@@ -140,19 +140,19 @@ def get_passwords(code_word):
 
 
 def add_single_users_in_database(name):
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        f'INSERT INTO single_users (name) VALUES (?)', (name, ))
+        f'INSERT INTO single_users (name) VALUES (%s)', (name, ))
     conn.commit()
     conn.close()
 
 
 def add_expenses_to_database(amount, table_name, user):
     today = datetime.now().date().isoformat()  # '2025-08-27'
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute(f'INSERT INTO {table_name} (name, cost, date) VALUES (?, ?, ?)',
+    cursor.execute(f'INSERT INTO {table_name} (name, cost, date) VALUES (%s, %s, %s)',
                    (user, amount, today))
     conn.commit()
     conn.close()
@@ -162,10 +162,10 @@ def get_expenses_in_one_category(category, category_text, username):
     single_users = get_single_users()
 
     if username in single_users:
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         
-        cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=?', (username,))
+        cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=%s', (username,))
         count_of_days = cursor.fetchall()[0][0]
 
         if count_of_days == 0:
@@ -173,9 +173,9 @@ def get_expenses_in_one_category(category, category_text, username):
 
         elif 0 < count_of_days < 60:
             day = days_declension(count_of_days)
-            conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor()
-            cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date >= DATE("now", "-59 day") AND name=?',
+            cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date >= DATE("now", "-59 day") AND name=%s',
                            (username,))
             result = cursor.fetchall()[0][0]
             conn.close()
@@ -187,7 +187,7 @@ def get_expenses_in_one_category(category, category_text, username):
 
         elif count_of_days == 60:
             pass
-            # conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            # conn = psycopg2.connect(DATABASE_URL)
             # cursor = conn.cursor()
             # cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date IN (SELECT DISTINCT date FROM {category}'
             #                f'ORDER BY date ASC LIMIT 30) AND name=?', (username,))
@@ -195,7 +195,7 @@ def get_expenses_in_one_category(category, category_text, username):
             # first_30_days = cursor.fetchone()[0]
             # conn.close()
             #
-            # conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            # conn = psycopg2.connect(DATABASE_URL)
             # cursor = conn.cursor()
             # cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date IN (SELECT DISTINCT date FROM {category}'
             #                f'ORDER BY date ASC LIMIT -1 OFFSET 30) AND name=?', (username,))
@@ -227,15 +227,15 @@ def get_expenses_in_one_category(category, category_text, username):
             pass
 
     else:
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-        cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=?', (username,))
+        cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=%s', (username,))
         family_number = cursor.fetchall()[0][0]
         conn.close()
 
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-        cursor.execute('SELECT family_users.name FROM family_users WHERE family_number=?',
+        cursor.execute('SELECT family_users.name FROM family_users WHERE family_number=%s',
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
@@ -244,9 +244,9 @@ def get_expenses_in_one_category(category, category_text, username):
         all_days = []
         total_amount = 0
         for name in family:
-            conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor()
-            cursor.execute(f'SELECT date FROM {category} WHERE name=?', (name,))
+            cursor.execute(f'SELECT date FROM {category} WHERE name=%s', (name,))
             all_days_one_name = cursor.fetchall()
             conn.close()
 
@@ -255,18 +255,18 @@ def get_expenses_in_one_category(category, category_text, username):
             for day in all_days_one_name:
                 all_days.append(day)
 
-            conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor()
-            cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=?', (name,))
+            cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=%s', (name,))
             count_of_days_one_name = cursor.fetchall()[0][0]
             conn.close()
             if count_of_days_one_name != 0:
 
                 if count_of_days_one_name < 60:
-                    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+                    conn = psycopg2.connect(DATABASE_URL)
                     cursor = conn.cursor()
                     cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date >= DATE("now", "-59 day") '
-                                   f'AND name=?', (name,))
+                                   f'AND name=%s', (name,))
                     result = cursor.fetchall()[0][0]
                     total_amount += result
                     conn.close()
@@ -305,25 +305,25 @@ def get_expenses_in_one_month(username):
         for category in categories:
             table = categories.get(category)[0]
             word = categories.get(category)[2]
-            conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor()
             cursor.execute(f'SELECT name FROM {table}')
             names = cursor.fetchall()
             conn.close()
             names = [name[0] for name in names]
             if username in names:
-                conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+                conn = psycopg2.connect(DATABASE_URL)
                 cursor = conn.cursor()
-                cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE date >= DATE("now", "-30 day") AND name=?',
+                cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE date >= DATE("now", "-30 day") AND name=%s',
                                (username,))
                 amount = cursor.fetchall()[0][0]
                 conn.close()
 
                 all_amount += int(amount)
-                conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+                conn = psycopg2.connect(DATABASE_URL)
                 cursor = conn.cursor()
                 cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {table} WHERE date >= DATE("now", "-30 day") '
-                               f'AND name=?', (username, ))
+                               f'AND name=%s', (username, ))
                 count_of_days = cursor.fetchall()[0][0]
                 conn.close()
                 average_amount = int(amount) / int(count_of_days)
@@ -338,15 +338,15 @@ def get_expenses_in_one_month(username):
         return all_data
 
     else:
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-        cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=?', (username,))
+        cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=%s', (username,))
         family_number = cursor.fetchall()[0][0]
         conn.close()
 
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-        cursor.execute('SELECT family_users.name FROM family_users WHERE family_number=?',
+        cursor.execute('SELECT family_users.name FROM family_users WHERE family_number=%s',
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
@@ -358,7 +358,7 @@ def get_expenses_in_one_month(username):
         for category in categories:
             table = categories.get(category)[0]
             word = categories.get(category)[2]
-            conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+            conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor()
             cursor.execute(f'SELECT name FROM {table}')
             names = cursor.fetchall()
@@ -370,19 +370,19 @@ def get_expenses_in_one_month(username):
 
             for name in family:
                 if name in names:
-                    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+                    conn = psycopg2.connect(DATABASE_URL)
                     cursor = conn.cursor()
                     cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE date >= DATE("now", "-30 day") '
-                                   f'AND name=?', (name,))
+                                   f'AND name=%s', (name,))
                     amount = cursor.fetchall()[0][0]
                     conn.close()
 
                     amount_category += int(amount)
 
-                    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+                    conn = psycopg2.connect(DATABASE_URL)
                     cursor = conn.cursor()
                     cursor.execute(
-                        f'SELECT "date" FROM {table} WHERE "date" >= DATE("now", "-30 day") AND name=?',
+                        f'SELECT "date" FROM {table} WHERE "date" >= DATE("now", "-30 day") AND name=%s',
                         (name,))
                     all_days_one_name = cursor.fetchall()
                     conn.close()
@@ -409,14 +409,14 @@ def get_expenses_in_one_month(username):
 
 def start_family_in_database(text, column_name, name):
     if column_name == 'code_word':
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute(f'INSERT INTO log_in_to_family (name, code_word, password, family_number) '
-                       f'VALUES (?, ?, ?, ?)', (name, text, '-', '-'))
+                       f'VALUES (%s, %s, %s, %s)', (name, text, '-', '-'))
         conn.commit()
         conn.close()
 
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute('SELECT log_in_to_family.id FROM log_in_to_family')
         id_names = cursor.fetchall()
@@ -425,35 +425,35 @@ def start_family_in_database(text, column_name, name):
         last_id = id_names[-1]
         conn.close()
 
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-        cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (?, ?)',
+        cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (%s, %s)',
                        (name, last_id))
-        cursor.execute(f'UPDATE log_in_to_family SET family_number=? WHERE family_number=? AND name=?',
+        cursor.execute(f'UPDATE log_in_to_family SET family_number=%s WHERE family_number=%s AND name=%s',
                        (last_id, '-', name))
         conn.commit()
         conn.close()
 
     elif column_name == 'password':
-        conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-        cursor.execute(f'UPDATE log_in_to_family SET password=? WHERE password=? AND name=?',
+        cursor.execute(f'UPDATE log_in_to_family SET password=%s WHERE password=%s AND name=%s',
                        (text, '-', name))
         conn.commit()
         conn.close()
 
 
 def add_family_in_database(username, password):
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        'SELECT log_in_to_family.family_number FROM log_in_to_family WHERE password=?', (password, ))
+        'SELECT log_in_to_family.family_number FROM log_in_to_family WHERE password=%s', (password, ))
     family_number = cursor.fetchall()[0][0]
     conn.close()
 
-    conn = sqlite3.connect('database/Family_Budget_Bot.db', check_same_thread=False)
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (?, ?)',
+    cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (%s, %s)',
                    (username, family_number))
     conn.commit()
     conn.close()
