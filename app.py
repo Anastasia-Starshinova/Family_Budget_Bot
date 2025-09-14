@@ -430,8 +430,8 @@ def start_family_in_database(text, column_name, name):
         print('os.getenv("DATABASE_URL")')
         print(os.getenv("DATABASE_URL"))
         cursor = connection.cursor()
-        cursor.execute(f'INSERT INTO log_in_to_family (name, code_word, password, family_number) '
-                       f'VALUES (%s, %s, %s, %s)', (name, text, '-', '-'))
+        cursor.execute(f'INSERT INTO log_in_to_family ("name", code_word, "password", family_number) '
+                       f'VALUES (%s, %s, %s, %s)', (name, text, 0, 0))
         connection.commit()
         connection.close()
 
@@ -446,10 +446,10 @@ def start_family_in_database(text, column_name, name):
 
         connection = psycopg2.connect(DATABASE_URL)
         cursor = connection.cursor()
-        cursor.execute(f'INSERT INTO family_users (name, family_number) VALUES (%s, %s)',
+        cursor.execute(f'INSERT INTO family_users ("name", family_number) VALUES (%s, %s)',
                        (name, last_id))
         cursor.execute(f'UPDATE log_in_to_family SET family_number=%s WHERE family_number=%s AND name=%s',
-                       (last_id, '-', name))
+                       (last_id, 0, name))
         connection.commit()
         connection.close()
 
@@ -457,7 +457,7 @@ def start_family_in_database(text, column_name, name):
         connection = psycopg2.connect(DATABASE_URL)
         cursor = connection.cursor()
         cursor.execute(f'UPDATE log_in_to_family SET password=%s WHERE password=%s AND name=%s',
-                       (text, '-', name))
+                       (text, 0, name))
         connection.commit()
         connection.close()
 
