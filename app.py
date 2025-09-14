@@ -410,7 +410,10 @@ def get_expenses_in_one_month(username):
 
 
 def start_family_in_database(text, column_name, name):
+    print('пришли в start_family_in_database')
+    # start_family_in_database(message.text, column_name, username)
     if column_name == 'code_word':
+        print('пришли в if column_name == code_word')
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute(f'INSERT INTO log_in_to_family (name, code_word, password, family_number) '
@@ -622,19 +625,17 @@ def start_family(message, column_name, text, example, code_word_or_password):
                     print('пришли в f code_word_or_password == Название:')
                     start_family_in_database(message.text, column_name, username)
                     markup.add(types.KeyboardButton('Вернуться в главное меню'))
-                    bot.send_message(message.chat.id,
-                                     text=f'{code_word_or_password} для входа в семейный бюджет добавлено ✅\n'
-                                          f'Осталось немного :)\nПридумайте цифровой пароль для входа и введите его '
-                                          f'сюда :)\nНапример: *1223* :)',
-                                     parse_mode='Markdown')
+                    answer = (f'{code_word_or_password} для входа в семейный бюджет добавлено ✅\nОсталось немного :)'
+                              f'\nПридумайте цифровой пароль для входа и введите его сюда :)\nНапример: *1223* :)')
+                    bot.send_message(message.chat.id, text=answer, parse_mode='Markdown')
                     bot.register_next_step_handler(message, start_family, 'password', 'цифровой пароль',
                                                    '"34556"', 'Пароль')
 
                 elif code_word_or_password == 'Пароль':
                     if message.text.isdigit():
                         start_family_in_database(message.text, column_name, username)
-                        bot.send_message(message.chat.id,
-                                         text=f'{code_word_or_password} для входа в семейный бюджет добавлен ✅')
+                        answer = f'{code_word_or_password} для входа в семейный бюджет добавлен ✅'
+                        bot.send_message(message.chat.id, text=answer)
                         buttons = categories_buttons()
                         bot.send_message(message.chat.id, text='Выберите категорию :)', reply_markup=buttons)
                         bot.register_next_step_handler(message, choose_category)
