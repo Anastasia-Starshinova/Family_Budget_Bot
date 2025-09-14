@@ -14,7 +14,8 @@ from flask import Flask, request
 TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+# DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
 
 WEBHOOK_PATH = f"/{TOKEN}"
 WEBHOOK_URL = f"https://familybudgetbot-production.up.railway.app{WEBHOOK_PATH}"
@@ -415,6 +416,8 @@ def start_family_in_database(text, column_name, name):
     if column_name == 'code_word':
         print('пришли в if column_name == code_word')
         conn = psycopg2.connect(DATABASE_URL)
+        print('os.getenv("DATABASE_URL")')
+        print(os.getenv("DATABASE_URL"))
         cursor = conn.cursor()
         cursor.execute(f'INSERT INTO log_in_to_family (name, code_word, password, family_number) '
                        f'VALUES (%s, %s, %s, %s)', (name, text, '-', '-'))
