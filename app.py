@@ -16,6 +16,11 @@ bot = telebot.TeleBot(TOKEN)
 
 # DATABASE_URL = os.getenv("DATABASE_URL")
 DATABASE_URL = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
+print(DATABASE_URL)  # должно показать всю строку
+
+conn = psycopg2.connect(DATABASE_URL)
+print("✅ Подключение успешно")
+conn.close()
 
 WEBHOOK_PATH = f"/{TOKEN}"
 WEBHOOK_URL = f"https://familybudgetbot-production.up.railway.app{WEBHOOK_PATH}"
