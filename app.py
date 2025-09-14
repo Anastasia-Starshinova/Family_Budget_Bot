@@ -107,22 +107,26 @@ def days_declension(n: int) -> str:
 
 
 def get_single_users():
+    print(get_single_users)
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
     cursor.execute('SELECT single_users.name FROM single_users')
     users = cursor.fetchall()
     connection.close()
     single_users = [user[0] for user in users]
+    print(f'single_users = {single_users}')
     return single_users
 
 
 def get_family_users():
+    print('get_family_users')
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
     cursor.execute('SELECT family_users.name FROM family_users')
     users = cursor.fetchall()
     connection.close()
     family_users = [user[0] for user in users]
+    print(f'family_users = {family_users}')
     return family_users
 
 
@@ -422,6 +426,7 @@ def start_family_in_database(text, column_name, name):
     if column_name == 'code_word':
         print('пришли в if column_name == code_word')
         connection = psycopg2.connect(DATABASE_URL)
+        # connection = psycopg2.connect(DATABASE_URL, sslmode="require")
         print('os.getenv("DATABASE_URL")')
         print(os.getenv("DATABASE_URL"))
         cursor = connection.cursor()
