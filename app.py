@@ -611,12 +611,15 @@ def start_family(message, column_name, text, example, code_word_or_password):
     if message.chat.type == 'private':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         if type(message.text) is str:
+            print('пришли в start_family')
 
             if message.text == '/start' or message.text == 'Вернуться в главное меню':
                 start(message)
 
             else:
+                print('пришли в else')
                 if code_word_or_password == 'Название':
+                    print('пришли в f code_word_or_password == Название:')
                     start_family_in_database(message.text, column_name, username)
                     markup.add(types.KeyboardButton('Вернуться в главное меню'))
                     bot.send_message(message.chat.id,
