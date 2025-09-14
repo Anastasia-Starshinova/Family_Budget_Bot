@@ -17,7 +17,7 @@ bot = telebot.TeleBot(TOKEN)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 WEBHOOK_PATH = f"/{TOKEN}"
-WEBHOOK_URL = f"https://risbot-production.up.railway.app{WEBHOOK_PATH}"
+WEBHOOK_URL = f"https://familybudgetbot-production.up.railway.app{WEBHOOK_PATH}"
 
 app = Flask(__name__)
 print('app = Flask(__name__)')
