@@ -19,6 +19,9 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 WEBHOOK_PATH = f"/{TOKEN}"
 WEBHOOK_URL = f"https://familybudgetbot-production.up.railway.app{WEBHOOK_PATH}"
 
+url = f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={WEBHOOK_URL}"
+print(requests.get(url).json())
+
 app = Flask(__name__)
 print('app = Flask(__name__)')
 
