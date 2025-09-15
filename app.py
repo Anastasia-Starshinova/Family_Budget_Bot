@@ -189,8 +189,8 @@ def get_expenses_in_one_category(category, category_text, username):
             day = days_declension(count_of_days)
             connection = psycopg2.connect(DATABASE_URL)
             cursor = connection.cursor()
-            cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE TO_DATE("date", "YYYY-MM-DD") >= '
-                           f'CURRENT_DATE - INTERVAL "59 days" AND "name"=%s', (username,))
+            cursor.execute(f'''SELECT SUM(cost) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+            CURRENT_DATE - INTERVAL '59 days' AND "name"=%s''', (username, ))
             result = cursor.fetchall()[0][0]
             connection.close()
             average_amount = int(result) / int(count_of_days)
@@ -286,9 +286,9 @@ def get_expenses_in_one_category(category, category_text, username):
                     print('count_of_days_one_name < 60:')
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
-                    cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE TO_DATE("date", "YYYY-MM-DD") >= '
-                                   f'CURRENT_DATE - INTERVAL "59 days" AND "name"=%s', (name,))
-                    result = cursor.fetchall()[0][0]
+                    cursor.execute(f'''SELECT SUM(cost) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') 
+                    >= CURRENT_DATE - INTERVAL '59 days' AND "name"=%s''', (name, ))
+                    result = cursor.fetchone()[0]
                     print(f'result = {result}')
                     total_amount += result
                     connection.close()
@@ -339,16 +339,16 @@ def get_expenses_in_one_month(username):
             if username in names:
                 connection = psycopg2.connect(DATABASE_URL)
                 cursor = connection.cursor()
-                cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE TO_DATE("date", "YYYY-MM-DD") >= '
-                               f'CURRENT_DATE - INTERVAL "30 days" AND "name"=%s', (username,))
+                cursor.execute(f'''SELECT SUM(cost) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+                CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
                 amount = cursor.fetchall()[0][0]
                 connection.close()
 
                 all_amount += int(amount)
                 connection = psycopg2.connect(DATABASE_URL)
                 cursor = connection.cursor()
-                cursor.execute(f'SELECT COUNT(DISTINCT "date") FROM {table} WHERE TO_DATE("date", "YYYY-MM-DD") '
-                               f'>= CURRENT_DATE - INTERVAL "30 days" AND "name"=%s', (username, ))
+                cursor.execute(f'''SELECT COUNT(DISTINCT "date") FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') 
+                >= CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
                 count_of_days = cursor.fetchall()[0][0]
                 connection.close()
                 average_amount = int(amount) / int(count_of_days)
@@ -397,8 +397,8 @@ def get_expenses_in_one_month(username):
                 if name in names:
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
-                    cursor.execute(f'SELECT SUM(cost) FROM {table} WHERE TO_DATE("date", "YYYY-MM-DD") >= '
-                                   f'CURRENT_DATE - INTERVAL "30 days" AND "name"=%s', (name,))
+                    cursor.execute(f'''SELECT SUM(cost) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+                    CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))
                     amount = cursor.fetchall()[0][0]
                     connection.close()
 
@@ -406,9 +406,8 @@ def get_expenses_in_one_month(username):
 
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
-                    cursor.execute(
-                        f'SELECT "date" FROM {table} WHERE TO_DATE("date", "YYYY-MM-DD") >= CURRENT_DATE - '
-                        f'INTERVAL "30 days" AND "name"=%s', (name,))
+                    cursor.execute(f'''SELECT "date" FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+                    CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))
                     all_days_one_name = cursor.fetchall()
                     connection.close()
                     all_days_one_name = [date[0] for date in all_days_one_name]
