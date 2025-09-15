@@ -9,6 +9,7 @@ from datetime import datetime
 import re
 import os
 from flask import Flask, request
+import traceback
 from psycopg2 import sql
 
 
@@ -285,24 +286,68 @@ def get_expenses_in_one_category(category, category_text, username):
                 print('if count_of_days_one_name != 0:')
 
                 if count_of_days_one_name < 60:
-                    print('count_of_days_one_name < 60:')
-                    connection = psycopg2.connect(DATABASE_URL)
-                    cursor = connection.cursor()
-                    query = sql.SQL(
-                        "SELECT SUM(cost) FROM {table} "
-                        "WHERE TO_DATE({date_col}, 'YYYY-MM-DD') >= CURRENT_DATE - INTERVAL '59 days' "
-                        "AND {name_col} = %s"
-                    ).format(
-                        table=sql.Identifier(category),  # безопасная подстановка имени таблицы
-                        date_col=sql.Identifier("date"),  # безопасная подстановка имени колонки
-                        name_col=sql.Identifier("name")  # безопасная подстановка имени колонки
-                    )
+                    try:
+                        connection = psycopg2.connect(DATABASE_URL)
+                        cursor = connection.cursor()
 
-                    cursor.execute(query, (name,))
-                    result = cursor.fetchone()[0]
-                    print(f'result = {result}')
-                    total_amount += result
-                    connection.close()
+                        # Показываем сами переменные
+                        print("category:", repr(category))
+                        print("name:", repr(name))
+
+                        # Сформируем безопасный запрос через psycopg2.sql
+                        query = sql.SQL(
+                            "SELECT SUM(cost) FROM {table} "
+                            "WHERE TO_DATE({date_col}, 'YYYY-MM-DD') >= CURRENT_DATE - INTERVAL '59 days' "
+                            "AND {name_col} = %s"
+                        ).format(
+                            table=sql.Identifier(category),
+                            date_col=sql.Identifier('date'),
+                            name_col=sql.Identifier('name')
+                        )
+
+                        # Выведем готовый SQL (для логов)
+                        try:
+                            print("SQL:", query.as_string(connection))
+                        except Exception:
+                            # если не получается as_string без привязки
+                            print("SQL (composed):", query)
+
+                        # Доп. проверка: есть ли строки с неверным форматом даты (покажет up to 10)
+                        cursor.execute(
+                            sql.SQL("SELECT {date_col} FROM {table} WHERE {date_col} !~ %s LIMIT 10")
+                            .format(date_col=sql.Identifier('date'), table=sql.Identifier(category)),
+                            (r'^\d{4}-\d{2}-\d{2}$',)
+                        )
+                        bad_dates = cursor.fetchall()
+                        print("bad date samples (should be empty if YYYY-MM-DD):", bad_dates)
+
+                        # Выполняем основной запрос
+                        cursor.execute(query, (name,))
+                        result = cursor.fetchone()[0]
+                        print("result =", result)
+
+                    except Exception as e:
+                        print("Exception during DB work:", e)
+                        traceback.print_exc()
+                    finally:
+                        try:
+                            cursor.close()
+                        except Exception:
+                            pass
+                        try:
+                            connection.close()
+                        except Exception:
+                            pass
+
+                    # print('count_of_days_one_name < 60:')
+                    # connection = psycopg2.connect(DATABASE_URL)
+                    # cursor = connection.cursor()
+                    # cursor.execute(f'''SELECT SUM(cost) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
+                    # >= CURRENT_DATE - INTERVAL '59 days' AND "name"=%s''', (name, ))
+                    # result = cursor.fetchone()[0]
+                    # print(f'result = {result}')
+                    # total_amount += result
+                    # connection.close()
 
                 elif count_of_days_one_name == 60:
                     pass
