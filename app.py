@@ -9,6 +9,7 @@ from datetime import datetime
 import re
 import os
 from flask import Flask, request
+from psycopg2 import sql
 
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -265,6 +266,7 @@ def get_expenses_in_one_category(category, category_text, username):
             cursor = connection.cursor()
             cursor.execute(f'SELECT "date" FROM {category} WHERE "name"=%s', (name,))
             all_days_one_name = cursor.fetchall()
+            print(f'all_days_one_name = {all_days_one_name}')
             connection.close()
 
             all_days_one_name = [date[0] for date in all_days_one_name]
@@ -286,8 +288,17 @@ def get_expenses_in_one_category(category, category_text, username):
                     print('count_of_days_one_name < 60:')
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
-                    cursor.execute(f'''SELECT SUM(cost) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') 
-                    >= CURRENT_DATE - INTERVAL '59 days' AND "name"=%s''', (name, ))
+                    query = sql.SQL(
+                        "SELECT SUM(cost) FROM {table} "
+                        "WHERE TO_DATE({date_col}, 'YYYY-MM-DD') >= CURRENT_DATE - INTERVAL '59 days' "
+                        "AND {name_col} = %s"
+                    ).format(
+                        table=sql.Identifier(category),  # безопасная подстановка имени таблицы
+                        date_col=sql.Identifier("date"),  # безопасная подстановка имени колонки
+                        name_col=sql.Identifier("name")  # безопасная подстановка имени колонки
+                    )
+
+                    cursor.execute(query, (name,))
                     result = cursor.fetchone()[0]
                     print(f'result = {result}')
                     total_amount += result
