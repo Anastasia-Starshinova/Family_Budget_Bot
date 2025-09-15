@@ -276,6 +276,8 @@ def get_expenses_in_one_category(category, category_text, username):
             cursor = connection.cursor()
             cursor.execute(f'SELECT COUNT(DISTINCT date) FROM {category} WHERE name=%s', (name,))
             count_of_days_one_name = cursor.fetchall()[0][0]
+            print('получили count_of_days_one_name')
+            print(f'count_of_days_one_name = {count_of_days_one_name}')
             connection.close()
             if count_of_days_one_name != 0:
 
@@ -285,6 +287,7 @@ def get_expenses_in_one_category(category, category_text, username):
                     cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date >= DATE("now", "-59 day") '
                                    f'AND name=%s', (name,))
                     result = cursor.fetchall()[0][0]
+                    print(f'result = {result}')
                     total_amount += result
                     connection.close()
 
@@ -295,10 +298,13 @@ def get_expenses_in_one_category(category, category_text, username):
                     pass
 
         all_days = len(set(all_days))
+        print(f'all_days = {all_days}')
         if all_days != 0 and total_amount != 0:
+            print('f all_days != 0 and total_amount != 0')
             day = days_declension(all_days)
             average_amount = int(total_amount) / int(all_days)
             if all_days < 60:
+                print('if all_days < 60:')
                 return (f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n\nБот пока не '
                         f'может показать вам статистику по месяцам: для этого нужно вести бюджет хотя бы 60 дней :)'
                         f'\n\nПокажу то, что есть сейчас:\nза *{all_days} {day} на категорию "{category_text}" '
@@ -421,7 +427,7 @@ def get_expenses_in_one_month(username):
             all_data += f'*{all_amount} - ОБЩАЯ СУММА, ПОТРАЧЕННАЯ ЗА МЕСЯЦ*\n😳'
             return all_data
         else:
-            return 'Ваша семья ещё не начинала вести свой бюджет в этой категории:)'
+            return 'Ваша семья ещё не начинала вести свой бюджет :)'
 
 
 def start_family_in_database(text, column_name, name):
