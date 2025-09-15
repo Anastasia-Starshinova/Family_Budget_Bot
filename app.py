@@ -171,6 +171,7 @@ def add_expenses_to_database(amount, table_name, user):
 
 
 def get_expenses_in_one_category(category, category_text, username):
+    print('ришли в get_expenses_in_one_category(category, category_text, username)')
     single_users = get_single_users()
 
     if username in single_users:
@@ -240,10 +241,12 @@ def get_expenses_in_one_category(category, category_text, username):
             pass
 
     else:
+        print('ришли в else')
         connection = psycopg2.connect(DATABASE_URL)
         cursor = connection.cursor()
         cursor.execute('SELECT family_users.family_number FROM family_users WHERE name=%s', (username,))
         family_number = cursor.fetchall()[0][0]
+        print('получили family_number')
         connection.close()
 
         connection = psycopg2.connect(DATABASE_URL)
@@ -252,6 +255,7 @@ def get_expenses_in_one_category(category, category_text, username):
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
+        print('получили family')
         connection.close()
 
         all_days = []
@@ -421,14 +425,8 @@ def get_expenses_in_one_month(username):
 
 
 def start_family_in_database(text, column_name, name):
-    print('пришли в start_family_in_database')
-    # start_family_in_database(message.text, column_name, username)
     if column_name == 'code_word':
-        print('пришли в if column_name == code_word')
         connection = psycopg2.connect(DATABASE_URL)
-        # connection = psycopg2.connect(DATABASE_URL, sslmode="require")
-        print('os.getenv("DATABASE_URL")')
-        print(os.getenv("DATABASE_URL"))
         cursor = connection.cursor()
         cursor.execute(f'INSERT INTO log_in_to_family ("name", code_word, "password", family_number) '
                        f'VALUES (%s, %s, %s, %s)', (name, text, 0, 0))
@@ -628,15 +626,12 @@ def start_family(message, column_name, text, example, code_word_or_password):
     if message.chat.type == 'private':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         if type(message.text) is str:
-            print('пришли в start_family')
 
             if message.text == '/start' or message.text == 'Вернуться в главное меню':
                 start(message)
 
             else:
-                print('пришли в else')
                 if code_word_or_password == 'Название':
-                    print('пришли в f code_word_or_password == Название:')
                     start_family_in_database(message.text, column_name, username)
                     markup.add(types.KeyboardButton('Вернуться в главное меню'))
                     answer = (f'{code_word_or_password} для входа в семейный бюджет добавлено ✅\nОсталось немного :)'
@@ -824,7 +819,7 @@ def view_expenses(message):
                 bot.send_message(message.chat.id, text=answer, reply_markup=markup, parse_mode='Markdown')
                 bot.register_next_step_handler(message, actions)
 
-            elif message.text == 'Посмотреть расходы в отдельной категории' or message.text == 'Вернуться в категории':
+            elif message.text == 'Посмотреть расходы в отдельной категории':
                 buttons = categories_buttons()
                 bot.send_message(message.chat.id,
                                  text='Выберите категорию 😌'.format(message.from_user), reply_markup=buttons)
@@ -848,6 +843,7 @@ def view_expenses(message):
 
 
 def view_expenses_in_one_category(message):
+    print('пришли в view_expenses_in_one_category(message)')
     if message.chat.type == 'private':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         username = message.from_user.username
@@ -857,6 +853,7 @@ def view_expenses_in_one_category(message):
                 start(message)
 
             elif message.text in categories:
+                print('пришли в message.text in categories')
                 table_name = categories.get(message.text)[0]
                 answer = get_expenses_in_one_category(table_name, message.text, username)
                 markup.add(types.KeyboardButton('Вернуться в главное меню'))
