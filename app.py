@@ -16,9 +16,7 @@ from psycopg2 import sql
 TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
-# DATABASE_URL = os.getenv("DATABASE_URL")
 DATABASE_URL = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
-print(DATABASE_URL)  # должно показать всю строку
 
 conn = psycopg2.connect(DATABASE_URL)
 print("✅ Подключение успешно")
@@ -26,9 +24,6 @@ conn.close()
 
 WEBHOOK_PATH = f"/{TOKEN}"
 WEBHOOK_URL = f"https://familybudgetbot-production.up.railway.app{WEBHOOK_PATH}"
-
-# url = f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={WEBHOOK_URL}"
-# print(requests.get(url).json())
 
 app = Flask(__name__)
 
@@ -109,26 +104,22 @@ def days_declension(n: int) -> str:
 
 
 def get_single_users():
-    print(get_single_users)
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
     cursor.execute('SELECT single_users.name FROM single_users')
     users = cursor.fetchall()
     connection.close()
     single_users = [user[0] for user in users]
-    print(f'single_users = {single_users}')
     return single_users
 
 
 def get_family_users():
-    print('get_family_users')
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
     cursor.execute('SELECT family_users.name FROM family_users')
     users = cursor.fetchall()
     connection.close()
     family_users = [user[0] for user in users]
-    print(f'family_users = {family_users}')
     return family_users
 
 
@@ -173,7 +164,6 @@ def add_expenses_to_database(amount, table_name, user):
 
 
 def get_expenses_in_one_category(category, category_text, username):
-    print('ришли в get_expenses_in_one_category(category, category_text, username)')
     single_users = get_single_users()
 
     if username in single_users:
@@ -243,12 +233,10 @@ def get_expenses_in_one_category(category, category_text, username):
             pass
 
     else:
-        print('ришли в else')
         connection = psycopg2.connect(DATABASE_URL)
         cursor = connection.cursor()
         cursor.execute('SELECT family_users.family_number FROM family_users WHERE "name"=%s', (username,))
         family_number = cursor.fetchall()[0][0]
-        print('получили family_number')
         connection.close()
 
         connection = psycopg2.connect(DATABASE_URL)
@@ -257,7 +245,6 @@ def get_expenses_in_one_category(category, category_text, username):
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
-        print('получили family')
         connection.close()
 
         all_days = []
@@ -267,7 +254,6 @@ def get_expenses_in_one_category(category, category_text, username):
             cursor = connection.cursor()
             cursor.execute(f'SELECT "date" FROM {category} WHERE "name"=%s', (name,))
             all_days_one_name = cursor.fetchall()
-            print(f'all_days_one_name = {all_days_one_name}')
             connection.close()
 
             all_days_one_name = [date[0] for date in all_days_one_name]
@@ -279,20 +265,15 @@ def get_expenses_in_one_category(category, category_text, username):
             cursor = connection.cursor()
             cursor.execute(f'SELECT COUNT(DISTINCT "date") FROM {category} WHERE "name"=%s', (name,))
             count_of_days_one_name = cursor.fetchall()[0][0]
-            print('получили count_of_days_one_name')
-            print(f'count_of_days_one_name = {count_of_days_one_name}')
             connection.close()
             if count_of_days_one_name != 0:
-                print('if count_of_days_one_name != 0:')
 
                 if count_of_days_one_name < 60:
-                    print('count_of_days_one_name < 60:')
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
                     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
                     >= CURRENT_DATE - INTERVAL '59 days' AND "name"=%s''', (name, ))
                     result = cursor.fetchone()[0]
-                    print(f'result = {result}')
                     total_amount += result
                     connection.close()
 
@@ -303,13 +284,10 @@ def get_expenses_in_one_category(category, category_text, username):
                     pass
 
         all_days = len(set(all_days))
-        print(f'all_days = {all_days}')
         if all_days != 0 and total_amount != 0:
-            print('f all_days != 0 and total_amount != 0')
             day = days_declension(all_days)
             average_amount = int(total_amount) / int(all_days)
             if all_days < 60:
-                print('if all_days < 60:')
                 return (f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n\nБот пока не '
                         f'может показать вам статистику по месяцам: для этого нужно вести бюджет хотя бы 60 дней :)'
                         f'\n\nПокажу то, что есть сейчас:\nза *{all_days} {day} на категорию "{category_text}" '
@@ -711,7 +689,6 @@ def enter_password(message, code_word):
     if message.chat.type == 'private':
         username = message.from_user.username
         passwords = get_passwords(code_word)
-        print(f'passwords = {passwords}')
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         if type(message.text) is str:
 
@@ -853,7 +830,6 @@ def view_expenses(message):
 
 
 def view_expenses_in_one_category(message):
-    print('пришли в view_expenses_in_one_category(message)')
     if message.chat.type == 'private':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         username = message.from_user.username
@@ -863,7 +839,6 @@ def view_expenses_in_one_category(message):
                 start(message)
 
             elif message.text in categories:
-                print('пришли в message.text in categories')
                 table_name = categories.get(message.text)[0]
                 answer = get_expenses_in_one_category(table_name, message.text, username)
                 markup.add(types.KeyboardButton('Вернуться в главное меню'))
@@ -886,7 +861,6 @@ def view_expenses_in_one_category(message):
 
 
 if __name__ == "__main__":
-    print('in if __name__ == "__main__"')
     bot.remove_webhook()
     bot.set_webhook(url=WEBHOOK_URL)
 
