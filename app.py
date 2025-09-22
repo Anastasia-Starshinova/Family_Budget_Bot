@@ -320,8 +320,14 @@ def get_expenses_in_one_month(username):
             if username in names:
                 connection = psycopg2.connect(DATABASE_URL)
                 cursor = connection.cursor()
-                cursor.execute(f'''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
-                CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
+                # cursor.execute(f'''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >=
+                # CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
+
+                query = sql.SQL('''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') 
+                                    >= CURRENT_DATE - INTERVAL '30 days' AND "name" = %s''').format(
+                    table=sql.Identifier(table))
+                cursor.execute(query, (username,))
+
                 amount = cursor.fetchall()[0][0]
                 connection.close()
 
@@ -332,16 +338,17 @@ def get_expenses_in_one_month(username):
                 >= CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
                 count_of_days = cursor.fetchall()[0][0]
                 connection.close()
-                average_amount = int(amount) / int(count_of_days)
+                # average_amount = int(amount) / int(count_of_days)
+                average_amount = int(amount) / 30
                 text = (f'*{word.upper()}:*\nза последний месяц потрачено - *{amount}* 💸\n'
                         f'средние расходы в день - *{average_amount}* 💸\n\n')
                 all_data += text
 
-            else:
-                return 'Вы ещё не начинали вести свой бюджет в этой категории:)'
-
-        all_data += f'*{all_amount} - ОБЩАЯ СУММА, ПОТРАЧЕННАЯ ЗА МЕСЯЦ*\n😳'
-        return all_data
+        if all_amount != 0:
+            all_data += f'*{all_amount} - ОБЩАЯ СУММА, ПОТРАЧЕННАЯ ЗА МЕСЯЦ*\n😳'
+            return all_data
+        else:
+            return 'Вы ничего не вносили в свой бюджет последние 30 дней:)'
 
     else:
         connection = psycopg2.connect(DATABASE_URL)
@@ -378,8 +385,14 @@ def get_expenses_in_one_month(username):
                 if name in names:
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
-                    cursor.execute(f'''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
-                    CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))
+
+                    query = sql.SQL('''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') 
+                    >= CURRENT_DATE - INTERVAL '30 days' AND "name" = %s''').format(table=sql.Identifier(table))
+                    cursor.execute(query, (name,))
+
+                    # cursor.execute(f'''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >=
+                    # CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))  то что было
+
                     amount = cursor.fetchall()[0][0]
                     connection.close()
 
@@ -389,6 +402,7 @@ def get_expenses_in_one_month(username):
                     cursor = connection.cursor()
                     cursor.execute(f'''SELECT "date" FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
                     CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))
+
                     all_days_one_name = cursor.fetchall()
                     connection.close()
                     all_days_one_name = [date[0] for date in all_days_one_name]
@@ -398,7 +412,8 @@ def get_expenses_in_one_month(username):
 
             days_category = len(set(days_category))
             if days_category != 0:
-                average_amount = int(amount_category) / int(days_category)
+                # average_amount = int(amount_category) / int(days_category)
+                average_amount = int(amount_category) / 30
                 text = (f'*{word.upper()}:*\nза последний месяц потрачено - *{amount_category}* 💸\n'
                         f'средние расходы в день - *{average_amount}* 💸\n\n')
 
@@ -409,7 +424,7 @@ def get_expenses_in_one_month(username):
             all_data += f'*{all_amount} - ОБЩАЯ СУММА, ПОТРАЧЕННАЯ ЗА МЕСЯЦ*\n😳'
             return all_data
         else:
-            return 'Ваша семья ещё не начинала вести свой бюджет :)'
+            return 'Ваша семья ничего не вносила в ваш бюджет последние 30 дней:)'
 
 
 def start_family_in_database(text, column_name, name):
