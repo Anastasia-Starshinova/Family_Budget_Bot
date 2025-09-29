@@ -267,6 +267,7 @@ def get_expenses_in_one_category(category, category_text, username):
             count_of_days_one_name = cursor.fetchall()[0][0]
             connection.close()
             if count_of_days_one_name != 0:
+                print('if count_of_days_one_name != 0:')
 
                 if count_of_days_one_name < 60:
                     connection = psycopg2.connect(DATABASE_URL)
