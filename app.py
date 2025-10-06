@@ -333,12 +333,12 @@ def get_expenses_in_one_month(username):
                 connection.close()
 
                 all_amount += int(amount)
-                connection = psycopg2.connect(DATABASE_URL)
-                cursor = connection.cursor()
-                cursor.execute(f'''SELECT COUNT(DISTINCT "date") FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') 
-                >= CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
-                count_of_days = cursor.fetchall()[0][0]
-                connection.close()
+                # connection = psycopg2.connect(DATABASE_URL)
+                # cursor = connection.cursor()
+                # cursor.execute(f'''SELECT COUNT(DISTINCT "date") FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD')
+                # >= CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username, ))
+                # count_of_days = cursor.fetchall()[0][0]
+                # connection.close()
                 # average_amount = int(amount) / int(count_of_days)
                 average_amount = int(amount) / 30
                 text = (f'*{word.upper()}:*\nза последний месяц потрачено - *{amount}* 💸\n'
