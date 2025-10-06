@@ -317,7 +317,7 @@ def get_expenses_in_one_month(username):
             cursor.execute(f'SELECT "name" FROM {table}')
             names = cursor.fetchall()
             connection.close()
-            names = [name[0] for name in names]
+            names = list(set([name[0] for name in names]))
             if username in names:
                 connection = psycopg2.connect(DATABASE_URL)
                 cursor = connection.cursor()
