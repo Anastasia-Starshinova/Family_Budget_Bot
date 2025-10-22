@@ -399,7 +399,8 @@ def get_expenses_in_one_month(username):
                     print(f'amount = {amount}')
                     connection.close()
 
-                    amount_category += int(amount)
+                    if amount is not None:
+                        amount_category += int(amount)
 
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
