@@ -364,6 +364,7 @@ def get_expenses_in_one_month(username):
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
+        print(f'family = {family}')
         connection.close()
 
         all_data = ''
@@ -395,6 +396,7 @@ def get_expenses_in_one_month(username):
                     # CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))  то что было
 
                     amount = cursor.fetchall()[0][0]
+                    print(f'amount = {amount}')
                     connection.close()
 
                     amount_category += int(amount)
@@ -419,10 +421,13 @@ def get_expenses_in_one_month(username):
                         f'средние расходы в день - *{average_amount}* 💸\n\n')
 
                 all_data += text
+                print(f'all_data = {all_data}')
                 all_amount += amount_category
+                print(f'all_amount = {all_amount}')
 
         if all_amount != 0:
             all_data += f'*{all_amount} - ОБЩАЯ СУММА, ПОТРАЧЕННАЯ ЗА МЕСЯЦ*\n😳'
+            print(f'all_data = {all_data}')
             return all_data
         else:
             return 'Ваша семья ничего не вносила в ваш бюджет последние 30 дней:)'
