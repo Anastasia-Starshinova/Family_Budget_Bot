@@ -314,7 +314,7 @@ def get_expenses_in_one_category(category, category_text, username):
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
                     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
-                                            CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username,))
+                                            CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name,))
                     last_30_days_one_name = cursor.fetchall()[0][0]
                     last_30_days += last_30_days_one_name
                     conn.close()
@@ -323,6 +323,9 @@ def get_expenses_in_one_category(category, category_text, username):
                     pass
 
         all_days = len(set(all_days))
+
+        print(f'last_30_days = {last_30_days}')
+
         if all_days != 0 and total_amount != 0:
             day = days_declension(all_days)
             average_amount = int(total_amount) / int(all_days)
@@ -333,7 +336,9 @@ def get_expenses_in_one_category(category, category_text, username):
                         f'потрачено {total_amount}* 💸\n*средние расходы в день - {average_amount}* 💸')
 
             elif all_days == 60:
-                first_30_days = int(all_days) - int(last_30_days)
+                first_30_days = all_days - int(last_30_days)
+
+                print(f'first_30_days = {first_30_days}')
 
                 if first_30_days > last_30_days:
                     difference = int(first_30_days) - int(last_30_days)
