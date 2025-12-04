@@ -333,7 +333,7 @@ def get_expenses_in_one_category(category, category_text, username):
                         f'потрачено {total_amount}* 💸\n*средние расходы в день - {average_amount}* 💸')
 
             elif all_days == 60:
-                first_30_days = int(total_amount) - int(last_30_days)
+                first_30_days = int(all_days) - int(last_30_days)
 
                 if first_30_days > last_30_days:
                     difference = int(first_30_days) - int(last_30_days)
