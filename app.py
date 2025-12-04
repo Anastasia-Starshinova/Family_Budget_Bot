@@ -192,45 +192,66 @@ def get_expenses_in_one_category(category, category_text, username):
                     f'{result}* 💸\n*средние расходы в день - {average_amount}* 💸')
 
         elif count_of_days == 60:
-            pass
-            # conn = psycopg2.connect(DATABASE_URL)
-            # cursor = conn.cursor()
-            # cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date IN (SELECT DISTINCT date FROM {category}'
-            #                f'ORDER BY date ASC LIMIT 30) AND name=?', (username,))
-            # # first_30_days = cursor.fetchall()[0][0]
-            # first_30_days = cursor.fetchone()[0]
-            # conn.close()
-            #
-            # conn = psycopg2.connect(DATABASE_URL)
-            # cursor = conn.cursor()
-            # cursor.execute(f'SELECT SUM(cost) FROM {category} WHERE date IN (SELECT DISTINCT date FROM {category}'
-            #                f'ORDER BY date ASC LIMIT -1 OFFSET 30) AND name=?', (username,))
-            # # second_30_days = cursor.fetchall()[0][0]
-            # second_30_days = cursor.fetchone()[0]
-            # conn.close()
-            #
-            # if first_30_days > second_30_days:
-            #     average_amount = int(first_30_days + second_30_days) / int(count_of_days)
-            #     difference = int(first_30_days) - int(second_30_days)
-            #     return (f'Вы ведёте бюджет *{count_of_days}* день/дней.\nВ первый месяц на категорию *{category_text}* '
-            #             f'вы потратили *{first_30_days}*, во второй месяц потратили *{second_30_days}*.\nВ первый '
-            #             f'месяц вы потратили на *{difference}* больше, чем во второй.\nСредние расходы в день на '
-            #             f'категорию *{category_text} - {average_amount}*')
-            # elif first_30_days == second_30_days:
-            #     average_amount = int(first_30_days) / int(count_of_days)
-            #     return (f'Вы ведёте бюджет *{count_of_days}* день/дней.\nВ первый месяц и во второй вы потратили '
-            #             f'одинаковую сумму *{second_30_days}* на категорию *{category_text}*\nСредние расходы в день - '
-            #             f'*{average_amount}*')
-            # elif first_30_days < second_30_days:
-            #     average_amount = int(first_30_days + second_30_days) / int(count_of_days)
-            #     difference = int(second_30_days) - int(first_30_days)
-            #     return (f'Вы ведёте бюджет *{count_of_days}* день/дней.\nВ первый месяц на категорию *{category_text}* '
-            #             f'вы потратили *{first_30_days}*, во второй месяц потратили *{second_30_days}*.\nВ первый '
-            #             f'месяц вы потратили на *{difference}* меньше, чем во второй.\nСредние расходы в день на '
-            #             f'категорию *{category} - {average_amount}*')
+            day = days_declension(count_of_days)
+
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
+            cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+                        CURRENT_DATE - INTERVAL '60 days' AND "name"=%s''', (username,))
+            all_days = cursor.fetchall()[0][0]
+            connection.close()
+
+            connection = psycopg2.connect(DATABASE_URL)
+            cursor = connection.cursor()
+            cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+                        CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username,))
+            last_30_days = cursor.fetchall()[0][0]
+            conn.close()
+
+            first_30_days = int(all_days) - int(last_30_days)
+
+            if first_30_days > last_30_days:
+                average_amount = int(all_days) / int(count_of_days)
+                difference = int(first_30_days) - int(last_30_days)
+                return (f'Вы ведёте бюджет *в категории "{category_text}" {count_of_days} {day}*.\n*Всего потрачено '
+                        f'{all_days}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+                        f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+                        f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
+            elif first_30_days < last_30_days:
+                average_amount = int(all_days) / int(count_of_days)
+                difference = int(last_30_days) - int(first_30_days)
+                return (f'Вы ведёте бюджет *в категории "{category_text}" {count_of_days} {day}*.\n*Всего потрачено '
+                        f'{all_days}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+                        f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+                        f'*В последние 30 дней вы потратили на {difference} больше, чем в первые 30 дней*:)')
 
         elif count_of_days > 60:
             pass
+            # day = days_declension(count_of_days)
+            #
+            # connection = psycopg2.connect(DATABASE_URL)
+            # cursor = connection.cursor()
+            # cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >=
+            #                         CURRENT_DATE - INTERVAL '60 days' AND "name"=%s''', (username,))
+            # all_days = cursor.fetchall()[0][0]
+            # connection.close()
+            #
+            # connection = psycopg2.connect(DATABASE_URL)
+            # cursor = connection.cursor()
+            # cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >=
+            #                         CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username,))
+            # last_30_days = cursor.fetchall()[0][0]
+            # conn.close()
+            #
+            # first_30_days = int(all_days) - int(last_30_days)
+            #
+            # if first_30_days > last_30_days:
+            #     average_amount = int(all_days) / int(count_of_days)
+            #     difference = int(first_30_days) - int(last_30_days)
+            #     return (f'Вы ведёте бюджет *в категории "{category_text}" {count_of_days} {day}*.\n*Всего потрачено '
+            #             f'{all_days}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+            #             f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+            #             f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
 
     else:
         connection = psycopg2.connect(DATABASE_URL)
@@ -249,6 +270,9 @@ def get_expenses_in_one_category(category, category_text, username):
 
         all_days = []
         total_amount = 0
+
+        last_30_days = 0
+
         for name in family:
             connection = psycopg2.connect(DATABASE_URL)
             cursor = connection.cursor()
@@ -279,7 +303,21 @@ def get_expenses_in_one_category(category, category_text, username):
                     connection.close()
 
                 elif count_of_days_one_name == 60:
-                    pass
+                    connection = psycopg2.connect(DATABASE_URL)
+                    cursor = connection.cursor()
+                    cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
+                                        >= CURRENT_DATE - INTERVAL '60 days' AND "name"=%s''', (name,))
+                    result = cursor.fetchone()[0]
+                    total_amount += result
+                    connection.close()
+
+                    connection = psycopg2.connect(DATABASE_URL)
+                    cursor = connection.cursor()
+                    cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
+                                            CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (username,))
+                    last_30_days_one_name = cursor.fetchall()[0][0]
+                    last_30_days += last_30_days_one_name
+                    conn.close()
 
                 elif count_of_days_one_name > 60:
                     pass
@@ -295,7 +333,23 @@ def get_expenses_in_one_category(category, category_text, username):
                         f'потрачено {total_amount}* 💸\n*средние расходы в день - {average_amount}* 💸')
 
             elif all_days == 60:
-                pass
+                first_30_days = int(total_amount) - int(last_30_days)
+
+                if first_30_days > last_30_days:
+                    difference = int(first_30_days) - int(last_30_days)
+                    return (
+                        f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n*Всего потрачено '
+                        f'{total_amount}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+                        f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+                        f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
+
+                elif first_30_days < last_30_days:
+                    difference = int(last_30_days) - int(first_30_days)
+                    return (
+                        f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n*Всего потрачено '
+                        f'{total_amount}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+                        f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+                        f'*В последние 30 дней вы потратили на {difference} больше, чем в первые 30 дней*:)')
 
             elif all_days > 60:
                 pass
