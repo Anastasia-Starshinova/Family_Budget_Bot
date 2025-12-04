@@ -302,8 +302,7 @@ def get_expenses_in_one_category(category, category_text, username):
                     total_amount += result
                     connection.close()
 
-                if count_of_days_one_name == 60:
-                    print('МЫ В elif count_of_days_one_name == 60')
+                elif count_of_days_one_name == 60:
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
                     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
@@ -322,8 +321,8 @@ def get_expenses_in_one_category(category, category_text, username):
                     print(f'last_30_days = {last_30_days}')
                     conn.close()
 
-                if count_of_days_one_name > 60:
-                    pass
+                elif count_of_days_one_name > 60:
+                    print('МЫ В elif count_of_days_one_name > 60:')
 
         all_days = len(set(all_days))
 
