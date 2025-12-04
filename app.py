@@ -316,7 +316,9 @@ def get_expenses_in_one_category(category, category_text, username):
                     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
                                             CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name,))
                     last_30_days_one_name = cursor.fetchall()[0][0]
+                    print(f'last_30_days_one_name = {last_30_days_one_name}')
                     last_30_days += last_30_days_one_name
+                    print(f'last_30_days = {last_30_days}')
                     conn.close()
 
                 elif count_of_days_one_name > 60:
@@ -336,7 +338,7 @@ def get_expenses_in_one_category(category, category_text, username):
                         f'потрачено {total_amount}* 💸\n*средние расходы в день - {average_amount}* 💸')
 
             elif all_days == 60:
-                first_30_days = all_days - int(last_30_days)
+                first_30_days = total_amount - last_30_days
 
                 print(f'first_30_days = {first_30_days}')
 
