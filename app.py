@@ -294,6 +294,7 @@ def get_expenses_in_one_category(category, category_text, username):
                 print('if count_of_days_one_name != 0:')
 
                 if count_of_days_one_name < 60:
+                    print('МЫ В if count_of_days_one_name < 60:')
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
                     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
