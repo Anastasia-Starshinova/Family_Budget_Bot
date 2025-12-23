@@ -268,6 +268,7 @@ def get_expenses_in_one_category(category, category_text, username):
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
+        print(f'family = {family}')
         connection.close()
 
         all_days = []
