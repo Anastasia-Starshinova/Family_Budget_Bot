@@ -279,8 +279,8 @@ def get_expenses_in_one_category(category, category_text, username):
             cursor = connection.cursor()
             cursor.execute(f'SELECT (MAX("date") - MIN("date")) + 1 FROM {category} WHERE "name"=%s',
                            (name,))
-            count_of_days_one_name = cursor.fetchall()
-            # count_of_days_one_name = cursor.fetchall()[0][0]
+            # count_of_days_one_name = cursor.fetchall()
+            count_of_days_one_name = cursor.fetchall()[0]
             print(f'count_of_days_one_name = {count_of_days_one_name}')
             all_days.append(count_of_days_one_name)
             print(f'all_days = {all_days}')
