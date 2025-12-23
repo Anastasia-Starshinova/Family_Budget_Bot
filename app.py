@@ -19,7 +19,6 @@ bot = telebot.TeleBot(TOKEN)
 DATABASE_URL = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
 
 conn = psycopg2.connect(DATABASE_URL)
-print("✅ Подключение успешно")
 conn.close()
 
 WEBHOOK_PATH = f"/{TOKEN}"
@@ -33,7 +32,6 @@ def webhook():
     json_str = request.get_data().decode('utf-8')
     update = telebot.types.Update.de_json(json_str)
     bot.process_new_updates([update])
-    print('in @app.route')
     return '', 200
 
 
@@ -255,7 +253,6 @@ def get_expenses_in_one_category(category, category_text, username):
             #             f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
 
     else:
-        print('else')
         connection = psycopg2.connect(DATABASE_URL)
         cursor = connection.cursor()
         cursor.execute('SELECT family_users.family_number FROM family_users WHERE "name"=%s', (username,))
@@ -268,14 +265,12 @@ def get_expenses_in_one_category(category, category_text, username):
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
-        print(f'family = {family}')
         connection.close()
 
         all_days = []
         total_amount = 0
 
         for name in family:
-            print(f'name = {name}')
             connection = psycopg2.connect(DATABASE_URL)
             cursor = connection.cursor()
             cursor.execute(f'SELECT COALESCE(DATE_PART("day", MAX("date") - MIN("date")), 0) + 1 '
@@ -288,8 +283,6 @@ def get_expenses_in_one_category(category, category_text, username):
             connection.close()
 
             if count_of_days_one_name != 0:
-                print('if count_of_days_one_name != 0:')
-
                 connection = psycopg2.connect(DATABASE_URL)
                 cursor = connection.cursor()
                 cursor.execute(f'''SELECT COALESCE(SUM(cost::int), 0) FROM {category} 
@@ -369,7 +362,6 @@ def get_expenses_in_one_month(username):
                        (family_number,))
         family = cursor.fetchall()
         family = [name[0] for name in family]
-        print(f'family = {family}')
         connection.close()
 
         all_data = ''
@@ -401,7 +393,6 @@ def get_expenses_in_one_month(username):
                     # CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))  то что было
 
                     amount = cursor.fetchall()[0][0]
-                    print(f'amount = {amount}')
                     connection.close()
 
                     if amount is not None:
@@ -427,13 +418,10 @@ def get_expenses_in_one_month(username):
                         f'средние расходы в день - *{average_amount}* 💸\n\n')
 
                 all_data += text
-                print(f'all_data = {all_data}')
                 all_amount += amount_category
-                print(f'all_amount = {all_amount}')
 
         if all_amount != 0:
             all_data += f'*{all_amount} - ОБЩАЯ СУММА, ПОТРАЧЕННАЯ ЗА МЕСЯЦ*\n😳'
-            print(f'all_data = {all_data}')
             return all_data
         else:
             return 'Ваша семья ничего не вносила в ваш бюджет последние 30 дней:)'
