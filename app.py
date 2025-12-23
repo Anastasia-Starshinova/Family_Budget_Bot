@@ -164,6 +164,7 @@ def add_expenses_to_database(amount, table_name, user):
 
 
 def get_expenses_in_one_category(category, category_text, username):
+    # answer = get_expenses_in_one_category(table_name, message.text, username)
     single_users = get_single_users()
 
     if username in single_users:
@@ -254,6 +255,7 @@ def get_expenses_in_one_category(category, category_text, username):
             #             f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
 
     else:
+        print('else')
         connection = psycopg2.connect(DATABASE_URL)
         cursor = connection.cursor()
         cursor.execute('SELECT family_users.family_number FROM family_users WHERE "name"=%s', (username,))
@@ -272,12 +274,15 @@ def get_expenses_in_one_category(category, category_text, username):
         total_amount = 0
 
         for name in family:
+            print(f'name = {name}')
             connection = psycopg2.connect(DATABASE_URL)
             cursor = connection.cursor()
             cursor.execute(f'SELECT (MAX("date") - MIN("date")) + 1 FROM {category} WHERE "name"=%s',
                            (name,))
             count_of_days_one_name = cursor.fetchall()[0][0]
+            print(f'count_of_days_one_name = {count_of_days_one_name}')
             all_days.append(count_of_days_one_name)
+            print(f'all_days = {all_days}')
             connection.close()
 
             if count_of_days_one_name != 0:
