@@ -689,7 +689,7 @@ def actions(message):
             elif message.text == 'Посмотреть расходы':
                 markup.add(types.KeyboardButton('Посмотреть расходы за последние 30 дней'),
                            types.KeyboardButton('Посмотреть расходы в отдельной категории'),
-                           types.KeyboardButton('Посмотреть расходы за последний месяц'))
+                           types.KeyboardButton('Посмотреть расходы за последний месяц!!!'))
                 bot.send_message(message.chat.id, text='Выберите, что хотите посмотреть :)', reply_markup=markup)
                 bot.register_next_step_handler(message, view_expenses)
 
