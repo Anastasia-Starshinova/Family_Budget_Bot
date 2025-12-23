@@ -273,8 +273,11 @@ def get_expenses_in_one_category(category, category_text, username):
         for name in family:
             connection = psycopg2.connect(DATABASE_URL)
             cursor = connection.cursor()
-            cursor.execute(f'SELECT COALESCE(DATE_PART("day", MAX("date") - MIN("date")), 0) + 1 '
-                           f'FROM {category} WHERE "name"=%s',(name,))
+            cursor.execute(f'''
+                SELECT COALESCE(DATE_PART('day', MAX("date") - MIN("date")), 0) + 1
+                FROM {category}
+                WHERE "name" = %s
+            ''', (name, ))
             # count_of_days_one_name = cursor.fetchall()
             count_of_days_one_name = cursor.fetchall()[0][0]
             print(f'count_of_days_one_name = {count_of_days_one_name}')
