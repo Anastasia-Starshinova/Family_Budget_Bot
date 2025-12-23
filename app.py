@@ -303,7 +303,20 @@ def get_expenses_in_one_category(category, category_text, username):
                     total_amount += result
                     connection.close()
 
+                    # if count_of_days_one_name <= 30:
+                    #     connection = psycopg2.connect(DATABASE_URL)
+                    #     cursor = connection.cursor()
+                    #     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date",
+                    #     'YYYY-MM-DD') >= CURRENT_DATE - INTERVAL '{count_of_days_one_name} days' AND "name"=%s''',
+                    #                    (name,))
+                    #     last_30_days_one_name = cursor.fetchall()[0][0]
+                    #     print(f'last_30_days_one_name = {last_30_days_one_name}')
+                    #     last_30_days += last_30_days_one_name
+                    #     print(f'last_30_days = {last_30_days}')
+                    #     conn.close()
+
                 elif count_of_days_one_name == 60:
+                    print('МЫ В elif count_of_days_one_name == 60')
                     connection = psycopg2.connect(DATABASE_URL)
                     cursor = connection.cursor()
                     cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
@@ -312,15 +325,15 @@ def get_expenses_in_one_category(category, category_text, username):
                     total_amount += result
                     connection.close()
 
-                    connection = psycopg2.connect(DATABASE_URL)
-                    cursor = connection.cursor()
-                    cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD') >= 
-                                            CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name,))
-                    last_30_days_one_name = cursor.fetchall()[0][0]
-                    print(f'last_30_days_one_name = {last_30_days_one_name}')
-                    last_30_days += last_30_days_one_name
-                    print(f'last_30_days = {last_30_days}')
-                    conn.close()
+                    # connection = psycopg2.connect(DATABASE_URL)
+                    # cursor = connection.cursor()
+                    # cursor.execute(f'''SELECT SUM(cost::int) FROM {category} WHERE TO_DATE("date", 'YYYY-MM-DD')
+                    # >= CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name,))
+                    # last_30_days_one_name = cursor.fetchall()[0][0]
+                    # print(f'last_30_days_one_name = {last_30_days_one_name}')
+                    # last_30_days += last_30_days_one_name
+                    # print(f'last_30_days = {last_30_days}')
+                    # conn.close()
 
                 elif count_of_days_one_name > 60:
                     print('МЫ В elif count_of_days_one_name > 60:')
@@ -338,26 +351,26 @@ def get_expenses_in_one_category(category, category_text, username):
                         f'\n\nПокажу то, что есть сейчас:\nза *{all_days} {day} на категорию "{category_text}" '
                         f'потрачено {total_amount}* 💸\n*средние расходы в день - {average_amount}* 💸')
 
-            elif all_days == 60:
-                first_30_days = total_amount - last_30_days
-
-                print(f'first_30_days = {first_30_days}')
-
-                if first_30_days > last_30_days:
-                    difference = int(first_30_days) - int(last_30_days)
-                    return (
-                        f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n*Всего потрачено '
-                        f'{total_amount}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
-                        f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
-                        f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
-
-                elif first_30_days < last_30_days:
-                    difference = int(last_30_days) - int(first_30_days)
-                    return (
-                        f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n*Всего потрачено '
-                        f'{total_amount}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
-                        f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
-                        f'*В последние 30 дней вы потратили на {difference} больше, чем в первые 30 дней*:)')
+            # elif all_days == 60:
+            #     first_30_days = total_amount - last_30_days
+            #
+            #     print(f'first_30_days = {first_30_days}')
+            #
+            #     if first_30_days > last_30_days:
+            #         difference = int(first_30_days) - int(last_30_days)
+            #         return (
+            #             f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n*Всего потрачено '
+            #             f'{total_amount}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+            #             f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+            #             f'*В первые 30 дней вы потратили на {difference} больше, чем в последние 30 дней*:)')
+            #
+            #     elif first_30_days < last_30_days:
+            #         difference = int(last_30_days) - int(first_30_days)
+            #         return (
+            #             f'Ваша семья ведёт бюджет *в категории "{category_text}" {all_days} {day}*.\n*Всего потрачено '
+            #             f'{total_amount}* 💸, средние расходы в день - *{average_amount}* 💸\n\nВ первые 30 дней '
+            #             f'вы потратили *{first_30_days}* 💸\nВ последние 30 дней вы потратили *{last_30_days}* 💸\n'
+            #             f'*В последние 30 дней вы потратили на {difference} больше, чем в первые 30 дней*:)')
 
             elif all_days > 60:
                 pass
@@ -675,7 +688,8 @@ def actions(message):
 
             elif message.text == 'Посмотреть расходы':
                 markup.add(types.KeyboardButton('Посмотреть расходы за последние 30 дней'),
-                           types.KeyboardButton('Посмотреть расходы в отдельной категории'))
+                           types.KeyboardButton('Посмотреть расходы в отдельной категории'),
+                           types.KeyboardButton('Посмотреть расходы за последний месяц'))
                 bot.send_message(message.chat.id, text='Выберите, что хотите посмотреть :)', reply_markup=markup)
                 bot.register_next_step_handler(message, view_expenses)
 
