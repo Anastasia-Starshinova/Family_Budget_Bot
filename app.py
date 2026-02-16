@@ -734,6 +734,9 @@ def choose_category(message):
             if message.text == '/start' or message.text == 'Вернуться в главное меню':
                 start(message)
 
+            # if message.text == '/start' or message.text == 'Вернуться в главное меню':
+            #     start(message)
+
             elif message.text in categories:
                 table_name = categories.get(message.text)[0]
                 word = categories.get(message.text)[1]
