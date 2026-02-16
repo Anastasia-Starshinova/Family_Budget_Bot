@@ -162,7 +162,6 @@ def add_expenses_to_database(amount, table_name, user):
 
 
 def get_expenses_in_one_category(category, category_text, username):
-    # answer = get_expenses_in_one_category(table_name, message.text, username)
     single_users = get_single_users()
 
     if username in single_users:
@@ -279,9 +278,7 @@ def get_expenses_in_one_category(category, category_text, username):
                 WHERE "name" = %s
             ''', (name,))
             count_of_days_one_name = cursor.fetchall()[0][0]
-            print(f'count_of_days_one_name = {count_of_days_one_name}')
             all_days.append(count_of_days_one_name)
-            print(f'all_days = {all_days}')
             connection.close()
 
             if count_of_days_one_name != 0:
@@ -391,9 +388,6 @@ def get_expenses_in_one_month(username):
                     >= CURRENT_DATE - INTERVAL '30 days' AND "name" = %s''').format(table=sql.Identifier(table))
                     cursor.execute(query, (name,))
 
-                    # cursor.execute(f'''SELECT SUM(cost::int) FROM {table} WHERE TO_DATE("date", 'YYYY-MM-DD') >=
-                    # CURRENT_DATE - INTERVAL '30 days' AND "name"=%s''', (name, ))  то что было
-
                     amount = cursor.fetchall()[0][0]
                     connection.close()
 
@@ -414,7 +408,6 @@ def get_expenses_in_one_month(username):
 
             days_category = len(set(days_category))
             if days_category != 0:
-                # average_amount = int(amount_category) / int(days_category)
                 average_amount = int(amount_category) / 30
                 text = (f'*{word.upper()}:*\nза последний месяц потрачено - *{amount_category}* 💸\n'
                         f'средние расходы в день - *{average_amount}* 💸\n\n')
@@ -865,9 +858,9 @@ def view_expenses_in_one_category(message):
                 start(message)
 
             elif message.text in categories:
-                print('elif message.text in categories:')
+                # print('elif message.text in categories:')
                 table_name = categories.get(message.text)[0]
-                print(f'table_name = {table_name}')
+                # print(f'table_name = {table_name}')
                 answer = get_expenses_in_one_category(table_name, message.text, username)
                 markup.add(types.KeyboardButton('Вернуться в главное меню'))
                 bot.send_message(message.chat.id, text=answer, reply_markup=markup, parse_mode='Markdown')
